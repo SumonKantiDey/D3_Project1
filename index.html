@@ -1,0 +1,797 @@
+ <!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>US Unemployment Rate Chart</title>
+
+
+<style> 
+	/* CSS code for different Styles */
+	body {
+	 font: 12px Arial;
+	 width: 100%;
+	}
+
+	path { 
+	    stroke: blue;
+	    fill: none;
+	}
+
+	.axis path,
+	.axis line {
+	    fill: none;
+	    stroke: grey;
+	    stroke-width: 1;
+	    shape-rendering: crispEdges;
+	}
+	.background {
+	  fill: none;
+	  pointer-events: all;
+	}
+	rect{
+		position: relative;
+	}
+	.province {
+        fill: #fff;
+        stroke: #000;
+        stroke-width: 1px;
+    }
+	
+    .province:hover {
+        fill: #666;
+    }
+    .hidden {
+        display: none;
+    }
+    div.tooltip {
+        color: #fff;
+		background-color: #009999;
+		padding: .5em;
+		border-radius: 2px;
+		opacity: 0.9;
+		font-weight: bolder;
+		text-align: center;
+		font-size: 14px;
+    }
+	body { 
+		font: 12px Arial; 
+		background: #fefefe;
+	}
+ 
+ 
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	.y.axis path {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	.brush .extent {
+	  stroke: #fff;
+	  fill-opacity: .125;
+	  shape-rendering: crispEdges;
+	}
+
+	.line {
+	  fill: none;
+	}
+	.menubar{
+		background: #009999;
+		width: 100%;
+	}
+	.menubar ul{
+		list-style: none;
+		width: 400px;
+		margin: auto;
+		text-decoration: none;
+	}
+	.menubar ul li{
+		list-style: none;
+		display: inline-block;
+		text-decoration: none;
+		padding-left: 10px;
+		padding-right: 10px;
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
+	.menubar ul li a{
+		text-decoration: none;
+		width: 40px;
+		font-size: 16px;
+		font-weight: bolder;
+		color: white;
+	}
+	.menubar ul li a:hover{
+		color: #000;
+	}
+	.plot{
+	   width: 100%;
+	   max-width: 800px;
+	   max-height: 700px;
+
+	}
+	.tooltipval{
+		min-height: 140px;
+		margin-bottom: -150px;
+		height: 150px;
+
+	}
+	#toolt{
+	  width: 200px;
+	  margin-left: auto;
+	  margin-right: auto;
+	  padding: 20px;
+	  background: #ddd;
+	  font-size: 15px;
+	  line-height: 18px;
+	}
+	#lineChart{
+		position: relative;
+	}
+	.svg-content-responsive {
+			width: 100%;
+			max-width: 795px;
+			min-width: 500px;
+			float: left;
+	}
+	.optionselection{
+		position: relative;
+		background: #ddd;
+		float: right;
+		margin-right: 20px;
+		padding-bottom: 50px;
+		padding-top: 20px;
+		margin: auto;
+		min-width: 400px;
+		max-width: 400px;
+		margin-bottom: 30px;
+	}
+	/* Adding code for making it brower window resposive */
+	@media (max-width:1227px){ 
+		.optionselection{
+			float: none;
+		}
+	}
+
+	.geomapclass{
+		margin: auto;
+	}
+	.geomapclass g{
+		margin: auto;
+	}
+	#stateOptions {
+	    height: 150px;
+	    width: 200px;
+	    border-style: solid;
+	    border-color: #CCC;
+	    overflow-y: scroll;
+	    margin: auto;
+		background: #fff;
+	}
+ 	#pumpDrop{
+ 	width: 300px;
+ 	margin: auto;
+ 	}
+	
+	#findings{
+		width: 90%;
+		max-width: 1200px;
+		margin: auto;
+	}
+	#findings h1{
+		margin-top: 40px;
+		margin-bottom: 50px;
+	}
+	#findings p{
+		margin: 20px;
+		font-size: 14px;
+		font-weight: bold;
+		text-align: center;
+	}
+	img{
+		width: 90%;
+	}
+	.imgleft{
+		width: 45%;
+		float: left;
+		margin: auto;
+	}
+	.imgright{
+		width: 45%;
+		float: right;
+		margin: auto;
+	}
+</style>
+
+<script src="./js/d3.v3.min.js"></script>
+<script src="./js/topojson.v1.min.js"></script>
+
+</head>
+
+<body>
+	<div class="menubar">
+		<ul>
+			<li><a href="#">Home</a></li>
+			<li><a href="#findings">Findings</a></li>
+			<li><a href="https://github.com/mykabir/D3Project1">Source Code</a></li>
+		</ul>
+	</div>
+	<h1><center>US Unemployment Rate: Time Series Visualization</center></h1>
+
+	<div class="optionselection">
+		<p style="text-align: center; text-decoration: underline; font-size: 18px;"><b>Select State to see the chart:</b></p>
+
+		<!-- State checkboxes -->
+		<div id="stateOptions"> 
+			<label><input type="checkbox" name="All States" class="state_selection" value="All States" id="58" ><text> All States</text><br></label>
+			<label><input type="checkbox" name="National" class="state_selection" value="National" id="57" ><text> National Unemployment rate</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="1"><text>Alabama</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="2"><text>Alaska</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="4"><text>Arizona</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="5"><text>Arkansas</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="6"><text>California</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="8"><text>Colorado</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="9"><text>Connecticut</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="10"><text>Delaware</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="11"><text>District of Columbia</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="12"><text>Florida</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="13"><text>Georgia</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="15"><text>Hawaii</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="16"><text>Idaho</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="17"><text>Illinois</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="18"><text>Indiana</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="19"><text>Iowa</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="20"><text>Kansas</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="21"><text>Kentucky</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="22"><text>Louisiana</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="23"><text>Maine</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="24"><text>Maryland</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="25"><text>Massachusetts</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="26"><text>Michigan</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="27"><text>Minnesota</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="28"><text>Mississippi</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="29"><text>Missouri</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="30"><text>Montana</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="31"><text>Nebraska</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="32"><text>Nevada</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="33"><text>New Hampshire</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="34"><text>New Jersey</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="35"><text>New Mexico</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="36"><text>New York</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="37"><text>North Carolina</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="38"><text>North Dakota</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="39"><text>Ohio</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="40"><text>Oklahoma</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="41"><text>Oregon</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="42"><text>Pennsylvania</text><br></label>
+				<label><input type="checkbox" class="state_selection" name="stateSelection" id="44"><text>Rhode Island</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="45"><text>South Carolina</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="46"><text>South Dakota</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="47"><text>Tennessee</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="48"><text>Texas</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="49"><text>Utah</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="50"><text>Vermont</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="51"><text>Virginia</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="53"><text>Washington</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="54"><text>West Virginia</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="55"><text>Wisconsin</text><br></label>
+			<label><input type="checkbox" class="state_selection" name="stateSelection" id="56"><text>Wyoming</text><br></label>
+		</div>
+		<div id="mapPlot"></div>
+
+		<div id="pumpDrop">
+			<p><b>Pump: </b><input type="text" name="pump" id="pump">
+			<button class='button' onclick= "pump();">Show</button></p>
+
+			<p><b>Drop:  &nbsp;</b><input type="text" name="drop" id="drop" >
+			<button class='button' onclick="drop();">Show</button></p>
+		</div>
+</div>
+
+<div class="plot">
+	<div class="tooltipval">
+		<div id="toolt" class="hidden"></div>
+	</div>
+	<div id ="lineChart"></div>
+</div>
+
+<div style="clear: both; border-top: 4px solid #ddd;"></div>
+
+<div id="findings">
+	<h1><center>Interesting Findings</center></h1>
+	<div class="imgleft">
+		<p>
+			<a href="./img/Finding1_West_Virginia.jpg"><img src="./img/Finding1_West_Virginia.jpg"></a>
+			<br/><br/><br/>
+			
+			West Virgina had the highest unemployment rate from 1976 to 2016. Along with some other states,
+			in 1983-1984 this state was its peak in unemployment rate.
+			<br/><br/><br/>
+		</p>
+	</div>	
+	<div class="imgright">
+		<p>
+			<a href="./img/Finding2_Louisiana.jpg"><img src="./img/Finding2_Louisiana.jpg"></a>
+			<br/><br/><br/>
+
+			In 2006, Louisana face highest change in unemployment rate because of Hurricake Katrina. The rate was increased almost twice as normal rate. 
+			<br/><br/><br/>
+		</p>
+	</div>
+</div>
+
+
+
+
+<script>
+	/* Codes for projecting GEO map of different States */
+	var width = 400, 
+	    height = 200,
+	    active = d3.select(null);
+
+	var projection = d3.geo.albersUsa()
+	    .scale(400)
+	    .translate([width / 2, height / 2]);
+
+	var path = d3.geo.path()
+	    .projection(projection);
+
+	var svgMap = d3.select("#mapPlot").append("svg")
+	    .attr("width", width)
+	    .attr("height", height)
+		.classed("geomapclass", true)
+	    .on("click", stopped, false);
+
+	svgMap.append("rect")
+	    .attr("class", "background")
+	    .attr("width", width)
+	    .attr("height", height)
+	    .on("click", reset);
+
+	var g = svgMap.append("g");
+
+	/* Adding tooltip for showing map name */ 
+	var tooltip = d3.select("#mapPlot").append('div')
+	            .attr('class', 'hidden tooltip');
+
+	/* Creating a colors array for defining both lines and map area */
+	var colors=["#003366","#006666","","#00ff99","#66ff66","#0000ff","","#333399","#6600cc","#9900cc","#ff66ff","#99ff99","#99cc00","","#996633","#cc3300","#666633","#ff9933","#339933","#333399","#33cccc","#cc66ff",
+				"#ffff00","#ff6600","#00ffff","#ff9900","#660033","#b3ff1a","#33ff33","#4d4dff","#660066","#ffb366","#b3b300","#330033","#666600","#00997a","#cc6666","#8800cc","#339900","#336699",
+				"#1a1aff","#c6538c","","#336600","#4d4d00","#cccc00","#663d00","#5c5c3d","#3d3d5c","#b300b3","#a64dff","","#391313","#994d00","#800080","#00b300","#00ccff","#8080ff","#ffbb33","#669900","#339966"];
+	
+	/* States name array */ 		
+	var states=["Alabama","Alaska","","Arizona","Arkansas","California","","Colorado","Connecticut","Delaware","","Florida","Georgia","","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts"
+	,"Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma"
+	,"Oregon","Pennsylvania","","","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia",,"Washington","West Virginia","Wisconsin","Wyoming"];
+
+	/* Reading states map data from json file for projecting map */
+	d3.json("us.json", function(error, us) {
+	  if (error) throw error;
+
+	  var provinces= g.selectAll('.province')
+	     .data(topojson.feature(us, us.objects.states).features)
+	     .enter();
+		provinces.append('path')
+			.attr('id',function(d){return 'i'+d.id;})
+			.attr('class', function(d) {
+	                    return 'province ' + d.id;
+	                })
+			
+	      .attr('d', path)
+		  
+	      .on('mousemove', function(d) {
+						var mouse = d3.mouse(svgMap.node()).map(function(d) {
+	                     return parseInt(d);
+	                    });
+	                    tooltip.classed('hidden', false)
+	                        .attr('style', 'left:' + (mouse[0]) +
+	                                'px; top:' + (mouse[1]) + 'px')
+	                        .html(states[d.id-1]);
+	                })
+	                .on('mouseout', function() {
+	                    tooltip.classed('hidden', true);
+	                })
+					.on("click", clicked);
+		d3.selectAll(".state_selection").on("change",NationalData);
+	});
+
+ 	/* Function for showing national average data. Id 57 for national and 58 for all states. Rest ids for others states */
+	function NationalData(d){
+		if(this.id==57){
+		if (!document.getElementById(this.id).checked) {
+							//when we uncheck the checkbox
+							document.getElementById("idno"+this.id).style.display = "none";
+		} else {
+							//when we check the checkbox
+							document.getElementById("idno"+this.id).style.display = "";
+		}
+		}
+		else if(this.id==58){
+			if (!document.getElementById(this.id).checked) {
+				for(var i=1;i<58;i++){
+
+					if(i==3||i==7||i==14||i==43||i==52){
+						continue;
+					}
+						document.getElementById("i"+i).style.fill = "#fff";
+						document.getElementById("idno"+i).style.display = "none";
+						
+				}
+			}
+			else{
+				for(var i=1;i<58;i++){
+					if(i==3||i==7||i==14||i==43||i==52){
+						continue;
+					}
+						document.getElementById("i"+i).style.fill = colors[i-1];
+						document.getElementById("idno"+i).style.display = "";
+						
+				}
+			}
+		}
+		else{
+			if (!document.getElementById(this.id).checked) {
+
+						document.getElementById("i"+this.id).style.fill = "#fff";
+						document.getElementById("idno"+this.id).style.display = "none";
+						
+				
+			}
+			else{
+						document.getElementById("i"+this.id).style.fill = colors[this.id-1];
+						document.getElementById("idno"+this.id).style.display = "";
+
+						
+				}
+		}
+	}
+	function clicked(d) { // Selecting the states in map
+	  if (active.node() === this) 
+	  	  return reset(d);
+	  active.classed("active", false);
+	  active = d3.select(this).classed("active", true);
+	  var bounds = path.bounds(d),
+	      dx = bounds[1][0] - bounds[0][0],
+	      dy = bounds[1][1] - bounds[0][1],
+	      xx = (bounds[0][0] + bounds[1][0]) / 2,
+	      yy = (bounds[0][1] + bounds[1][1]) / 2,
+	      scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
+	      translate = [width / 2 - scale * xx, height / 2 - scale * y];
+		  document.getElementById("i"+d.id).style.fill = colors[d.id-1];
+		update(d);
+		
+	}
+
+	// Reset data from map.
+	function reset(d) {
+	resetmap(d);
+	document.getElementById("i"+d.id).style.fill = "#fff";
+	  active.classed("active", false);
+	  active = d3.select(null);
+	  
+
+	  
+	}
+
+	function stopped() {
+	  if (d3.event.defaultPrevented) d3.event.stopPropagation();
+	}
+
+	// Set the dimensions of the canvas / graph
+	var margin = {top: 10, right: 10, bottom: 100, left: 40},
+	    margin2 = {top: 430, right: 10, bottom: 20, left: 40},
+	    width = 800 - margin.left - margin.right,
+	    height = 500 - margin.top - margin.bottom,
+	    height2 = 500 - margin2.top - margin2.bottom;
+	
+
+	// Parse the date / time
+	var parseDate2 = d3.time.format("%B-%Y").parse;
+
+	// Set the ranges
+	var x = d3.time.scale().range([0, width]),
+	    x2 = d3.time.scale().range([0, width]),
+	    y = d3.scale.linear().range([height, 0]),
+	    y2 = d3.scale.linear().range([height2, 0]);
+
+	// Define the axes
+	var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(10),
+	    xAxis2 = d3.svg.axis().scale(x2).orient("bottom").ticks(15).tickFormat(d3.time.format("%y")),
+	    yAxis = d3.svg.axis().scale(y).orient("left").ticks(20); 
+	
+	// Setting brush for zoom a time span.	
+	var brush = d3.svg.brush()
+	    .x(x2)
+	    .on("brush", brush);
+
+	// Define the line
+	var valueline = d3.svg.line()
+	    .x(function(d) { return x(d.date); })
+	    .y(function(d) { return y(d.unemplyment); })
+	    .interpolate("basis");
+
+	// Valueline for second scale for zoom
+	var valueline2 = d3.svg.line()
+	    .x(function(d) { return x(d.date); })
+	    .y(function(d) { return y(d.unemplyment); });
+	    
+	// Adds the svg canvas
+	var svg = d3.select("#lineChart")
+			.append("svg")
+			.attr("preserveAspectRatio", "xMinYMin meet")
+			.attr("viewBox", "0 0 800 500")
+			//class to make it responsive
+			.classed("svg-content-responsive", true);
+			
+		var tooltipT = d3.select("#toolt");
+	    
+	svg.append("defs").append("clipPath")
+	    .attr("id", "clip")
+	  .append("rect")
+	    .attr("width", width)
+	    .attr("height", height)
+			.attr("preserveAspectRatio", "xMinYMin meet")
+			.attr("viewBox", "0 0 600 500")
+			//class to make it responsive
+			.classed("svg-content-responsive", true);
+	 
+	var focus = svg.append("g")
+	  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	      
+	var context = svg.append("g")
+	  .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+	  
+	  var color=d3.scale.category20();
+	  
+	  var dataAll={}; // Arrary for putting all the data.
+	  d3.csv("Nationalrate.csv",function(error,data){ // Reading national average data. 
+			data.forEach(function(d){
+				if(dataAll[d.State]==undefined)
+					dataAll[d.State]=[];
+				dataAll[d.State].push(d);
+			});
+		  });
+	  
+	d3.csv("final_data.csv", function(error, data) // Reading states data.
+		{    
+		  data.forEach(function(d) {
+			if(dataAll[d.State]==undefined)
+				dataAll[d.State]=[];
+			dataAll[d.State].push(d);
+		  });
+		  
+		   // Storing states data
+		  for(var statename in dataAll){
+		  dataAll[statename].forEach(function(d) {
+			d.date = parseDate2(d.Month+"-"+d.Year);
+			d.unemplyment = +d["Unemployment rates by State, not seasonally adjusted"];
+		  });
+
+
+		  // Sorting data
+		  dataAll[statename].sort(function(a,b){
+			if (a.date<b.date)
+				return -1;
+			else if (a.date>b.date)
+				return 1;
+			else
+				return 0;
+		  })  
+		  }
+			
+			
+			// Scale the range of the data
+			x.domain(d3.extent(dataAll["Indiana"], function(d) { return d.date; }));
+			y.domain([0, 20]);
+			x2.domain(x.domain());
+			y2.domain(y.domain());
+			
+			var dataArray=[];
+			var bisector = d3.bisector(function(d){ return d.x; }).left;
+			
+			for(var statename in dataAll){
+				if(statename=="National"||statename=="Puerto Rico")
+					continue;
+				dataArray.push(dataAll[statename]);
+			}
+			dataArray.push(dataAll["National"]);
+			var dataPlot=[];
+			var j=0;
+			
+					
+			for(var i=1;i<58;i++){
+			if(i==3||i==7||i==14||i==43||i==52){
+			continue;
+			}
+				
+			dataPlot.push(dataArray[j]);
+			j++;
+
+			// Drawing the lines
+			focus.selectAll(".line")
+				.data(dataPlot).enter()
+				.append("g")
+				.append("path")
+				.attr("class", "line")
+				.attr("stroke-width",2)
+				.attr("id","idno"+i)
+				.style("display","none")
+				.attr("d",function(d){
+					return valueline(d);})
+				.style("stroke", function(d) {return colors[i-1];})
+				.attr("clip-path", "url(#clip)")
+				.on("mouseover",function(d1){
+				var mouse = d3.mouse(svgMap.node()).map(function(d) {
+	                     return parseInt(d);
+	                    });
+						var xPoint = d3.mouse(this)[0];
+						var xAxisInfo = x.invert(xPoint);
+						var Year=1900+xAxisInfo.getYear();
+						var yPoint = d3.mouse(this)[1];
+						var yAxisInfo = y.invert(yPoint);
+						var rate=yAxisInfo.toFixed(1);
+						var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+						var Month = monthNames[ xAxisInfo.getMonth()];
+						
+						// Tooltip for showing valus of a line point.
+	                    tooltipT.classed('hidden', false)
+	                        .attr('style', 'left: 300px; top: 100px')
+	                        .html("<b>Region: &nbsp;</b>"+ d1[0].State+"<br /><b>Year: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>"+Year+ "<br/> <b>Month: &nbsp;&nbsp;&nbsp;</b>" + Month + "<br /><b>Rate: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>"+rate);
+						focus.selectAll(".line")
+					    .attr("stroke-width", 4)
+						.attr("stroke-opacity",function(d2){
+							if(d1==d2)
+								return 1;
+							else 
+								return 0.01;
+						});
+						if(d1[0].State!="National" && d1[0].State!="District of Columbia" && d1[0].State!="Rhode Island"){
+						var stateName=""+d1[0].State;
+						var stateNumber=states.indexOf(stateName)+1;
+						document.getElementById("i"+stateNumber).style.fill = "#666";
+					}
+						
+						
+				})
+				.on("mouseout",function(d1){
+						focus.selectAll(".line")
+					    .attr("stroke-width", 2);
+						tooltipT.classed('hidden',true);
+						if(d1[0].State!="National" && d1[0].State!="District of Columbia" && d1[0].State!="Rhode Island"){
+						var stateName=""+d1[0].State;
+						var stateNumber=states.indexOf(stateName)+1;
+						document.getElementById("i"+stateNumber).style.fill = colors[stateNumber-1];
+						}
+					focus.selectAll(".line")
+						.attr("stroke-opacity",1);
+				});
+			}
+
+			// Add the X Axis
+			focus.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(xAxis);
+
+			// Add the Y Axis
+			focus.append("g")
+				.attr("class", "y axis")
+				.call(yAxis);
+			
+			dataPlot=[];
+			j=0;
+			for(var i=1;i<58;i++){
+			if(i==3||i==7||i==14||i==43||i==52){
+			continue;
+			}
+				
+			dataPlot.push(dataArray[j]);
+			j++;
+
+			// Drawing second x axis from zoom
+			context.selectAll(".line")
+				.data(dataPlot).enter()
+				.append("g")
+				.append("path")
+				.attr("class", "line")
+				.attr("stroke-width",1)
+				.attr("id","idno"+i)
+				.style("display","none")
+				.attr("d",function(d){
+					return valueline2(d);})
+				.style("stroke", function(d) {return color(d[0].State);})
+				.attr("clip-path", "url(#clip)");
+			}
+			// Add the X Axis
+			context.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height2 + ")")
+				.call(xAxis2);
+
+			// Add the Y Axis
+			context.append("g")
+		        .attr("class", "x brush")
+		        .call(brush)
+		    	 .selectAll("rect")
+		        .attr("y", -6)
+		        .attr("height", height2 + 7);
+		});
+		function update(d){	
+				document.getElementById("idno"+d.id).style.display = "";
+				  }
+		function resetmap(d){
+				document.getElementById("idno"+d.id).style.display = "none";
+				  }
+		
+		function brush() {
+			x.domain(brush.empty() ? x2.domain() : brush.extent());
+			focus.selectAll("path.line").attr("d",  function(d) {return valueline(d)});
+			focus.select(".x.axis").call(xAxis);
+			focus.select(".y.axis").call(yAxis);
+		}
+
+		/* Function for showing sudden pump */
+		function pump()
+		{ 
+		var pump_amount= document.getElementById("pump").value;
+		  focus.selectAll(".line")
+		  .attr("stroke-opacity", function(unEmpRate){
+		    var checker = false;
+		    for(var i=1;i<unEmpRate.length;i++ ){
+		    if((unEmpRate[i].unemplyment-unEmpRate[i-1].unemplyment)>pump_amount)
+		    checker = true;
+		    }
+		    if (checker)
+		    return 1;
+		    else
+		    return 0.1;
+		}); 
+		}
+
+		// select all the text elements for the xaxis
+		svg.selectAll(".y axis text")  
+		          .attr("transform", function(d) {
+		     			return "translate(" + this.getBBox().height*-6 + "," + this.getBBox().height + ")";
+		         	});
+
+		// Appending text with Axis
+		svg.append("text")
+		            .attr("text-anchor", "margin-right")  
+		            .attr("transform", "rotate(-90)") 
+		            .attr("y", 45)
+		            .attr("x", -160)
+		    		.attr("dy", "1em")
+		      		.attr("fill", "#000")
+		      		.attr("style", "font-size: 14px;")
+		            .text("Unemployment Rate(%)");
+
+
+		/* Function for showing sudden drop */
+		function drop()
+		{ 
+		var dropValue= document.getElementById("drop").value;
+			dropValue= Number(dropValue);
+		 	 focus.selectAll(".line")
+				  .attr("stroke-opacity", function(unEmpRate){
+					    var suddenDrop = false;
+					    for(var i=1;i<unEmpRate.length;i++ ){
+						    if((unEmpRate[i-1].unemplyment-unEmpRate[i].unemplyment)>dropValue)
+						    suddenDrop = true;
+					    }
+					    if (suddenDrop)
+					    	return 1;
+					    else
+					    	return 0.1; 
+				});
+
+		}
+</script>
+
+</body>
+</html>
